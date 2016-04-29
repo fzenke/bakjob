@@ -1,5 +1,15 @@
 #!/usr/bin/python
 
+# This is a copy of BAKJOB a backup scheduling tool for computers 
+# with sporadic access to certain backup media such as USB devices
+# or the internet.
+#
+#
+# Copyright (c) 2016 Friedemann Zenke
+#
+# BAKJOB is distributed under the MIT license.
+# See LICENSE for details.
+
 import os
 import sys
 import socket
@@ -121,7 +131,7 @@ def run_job(job):
     if errorcode:
         logger.error("The program returned the following error code: %i"%errorcode)
     else:
-        logger.info("Job %i finished sucessfully. Next run in %is from now or after."%(jobid,job['interval']))
+        logger.info("Job %i finished sucessfully. Next check delayed by %is."%(jobid,job['interval']))
         job['last_run_time'] = time.time()
         save_last_run_times(bakjobs)
 
@@ -147,6 +157,7 @@ while True:
         url = job['urlinfo']
         if url.scheme == 'file':
             if check_path_availability(url.path):
+                logger.info("Path %s is available, running job %i (%s)"%(url.path, jobid, job['name']))
                 run_job(job)
             else:
                 logger.debug("Path %s is not available for job %i (%s), waiting ..."%(url.path, jobid, job['name']))
