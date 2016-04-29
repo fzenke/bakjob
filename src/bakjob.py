@@ -1,5 +1,6 @@
 #!/usr/bin/python
 
+import os
 import sys
 import socket
 import time
@@ -26,7 +27,6 @@ args = parser.parse_args()
 # parameters
 sleep_time = args.sleeptime
 
-
 # Set up logging
 logger = logging.getLogger('bakjob')
 logger.setLevel(logging.DEBUG)
@@ -34,10 +34,15 @@ logger.setLevel(logging.DEBUG)
 # create formatter
 formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
 
+# loglevel
+loglevel = logging.INFO
+if args.verbose:
+    loglevel = logging.DEBUG
+
 if not args.quiet:
     # create console handler and set level to debug
     ch = logging.StreamHandler()
-    ch.setLevel(logging.DEBUG) # TODO make variable
+    ch.setLevel(loglevel) 
     # add formatter to ch
     ch.setFormatter(formatter)
     # add ch to logger
@@ -45,13 +50,11 @@ if not args.quiet:
 
 if args.logfile:
     fh = logging.FileHandler(args.logfile)
-    fh.setLevel(logging.INFO)
+    fh.setLevel(loglevel)
     fh.setFormatter(formatter)
     logger.addHandler(fh)
 
-
 # Load run data
-#
 try:
     pkl_file = open(args.statefile, 'rb')
     rundata = pickle.load(pkl_file)
@@ -78,7 +81,8 @@ for section in config.sections():
             'cmd'      : config.get(section,'cmd') , 
             'interval' : config.getint(section,'interval') ,
             'md5hash'  : md5hash ,
-            'last_run_time' : last_run_time
+            'last_run_time' : last_run_time ,
+            'urlinfo'  : urlparse(config.get(section,'target') )
             }
     bakjobs.append(job)
 
@@ -97,8 +101,7 @@ def check_host_availability(hostname, port=22):
     return return_value
 
 def check_path_availability(path):
-    # TODO implement 
-    return True
+    return os.path.exists(path)
 
 def save_last_run_times(jobs):
     data = {}
@@ -112,6 +115,15 @@ def save_last_run_times(jobs):
     except IOError:
         rundata = {}
         logger.warning("Could not open statefile %s for writing"%args.statefile)
+
+def run_job(job):
+    errorcode = call(job['cmd'], shell=True)
+    if errorcode:
+        logger.error("The program returned the following error code: %i"%errorcode)
+    else:
+        logger.info("Job %i finished sucessfully. Next run in %is from now or after."%(jobid,job['interval']))
+        job['last_run_time'] = time.time()
+        save_last_run_times(bakjobs)
 
 
 
@@ -132,19 +144,18 @@ while True:
                 logger.debug("No work - sleeping for %is"%sleep_time)
                 continue
 
-        url = urlparse(job['target'])
+        url = job['urlinfo']
         if url.scheme == 'file':
-            # TODO Implement logic for paths
-            logger.warning("Do something locally")
+            if check_path_availability(url.path):
+                run_job(job)
+            else:
+                logger.debug("Path %s is not available for job %i (%s), waiting ..."%(url.path, jobid, job['name']))
+
         else:
             if check_host_availability(url.hostname, url.port):
-                logger.info("Host %s is available, running job %s: %s"%(url.hostname, jobid, job['cmd']))
-                errorcode = call(job['cmd'], shell=True)
-                if errorcode:
-                    logger.error("The program returned the following error code: %i"%errorcode)
-                else:
-                    logger.info("Job %i finished sucessfully. Next run in >%is from now."%(jobid,job['interval']))
-                    job['last_run_time'] = time.time()
-                    save_last_run_times(bakjobs)
+                logger.info("Host %s is available, running job %s: %s"%(url.hostname, jobid, job['name']))
+                run_job(job)
+            else:
+                logger.debug("Host %s is unavailable for job %i (%s), waiting ..."%(url.hostname, jobid, job['name']))
 
 
