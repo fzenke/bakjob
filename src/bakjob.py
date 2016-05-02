@@ -64,6 +64,19 @@ if args.logfile:
     fh.setFormatter(formatter)
     logger.addHandler(fh)
 
+def convert_seconds_to_human_readible(c):
+    days = c // 86400
+    hours = c // 3600 % 24
+    minutes = c // 60 % 60
+    seconds = c % 60
+
+    if days:
+        return "%i days"%days
+    elif days:
+        return "%ih"%hours
+    else:
+        return "%imin %is"%(minutes, seconds)
+
 # Load run data
 try:
     pkl_file = open(args.statefile, 'rb')
@@ -83,9 +96,9 @@ for section in config.sections():
     last_run_time = 0
     if md5hash in rundata.keys():
         last_run_time = rundata[md5hash]
-        logger.debug("Loading runtime for %s"%section)
+        logger.debug("Loading last runtime for %s"%(section))
     else:
-        logger.debug("No runtime for %s saved, scheduled for running"%section)
+        logger.debug("No last runtime for %s saved, scheduled for running"%section)
     job = { 'name'     : section, 
             'target'   : config.get(section,'target') , 
             'cmd'      : config.get(section,'cmd') , 
@@ -110,6 +123,7 @@ def check_host_availability(hostname, port=22):
     s.close()
     return return_value
 
+
 def check_path_availability(path):
     return os.path.exists(path)
 
@@ -131,7 +145,7 @@ def run_job(job):
     if errorcode:
         logger.error("The program returned the following error code: %i"%errorcode)
     else:
-        logger.info("Job %i finished sucessfully. Next check delayed by %is."%(jobid,job['interval']))
+        logger.info("Job %i finished sucessfully. Next check delayed by %s."%(jobid, convert_seconds_to_human_readible(job['interval'])))
         job['last_run_time'] = time.time()
         save_last_run_times(bakjobs)
 
