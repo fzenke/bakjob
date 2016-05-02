@@ -35,8 +35,6 @@ parser.add_argument('--quiet', action='store_true', help='Do not log to console'
 parser.add_argument('--verbose', '-v', action='count', help='Verbosity level')
 parser.add_argument('--sleeptime', type=int, default=600, help='Time to sleep in seconds between checks if there is work.')
 args = parser.parse_args()
-# parameters
-sleep_time = args.sleeptime
 
 # Set up logging
 logger = logging.getLogger('bakjob')
@@ -161,13 +159,13 @@ else:
 
 while True:
     for jobid,job in enumerate(bakjobs):
-        time.sleep(sleep_time)
+        time.sleep(args.sleeptime)
 
         logger.debug("Checking job %i (%s)"%(jobid, job['name']))
         if 'last_run_time' in job.keys():
             next_run_time = job['last_run_time']+job['interval']
             if time.time()<next_run_time:
-                logger.debug("No work - sleeping for %is"%sleep_time)
+                logger.debug("No work - sleeping for %is"%args.sleeptime)
                 continue
 
         url = job['urlinfo']
