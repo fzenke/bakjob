@@ -14,6 +14,7 @@ import os
 import sys
 import socket
 import time
+import datetime
 import logging
 import argparse
 import md5
@@ -96,7 +97,8 @@ for section in config.sections():
     last_run_time = 0
     if md5hash in rundata.keys():
         last_run_time = rundata[md5hash]
-        logger.debug("Loading last runtime for %s"%(section))
+        date_and_time = datetime.datetime.fromtimestamp(last_run_time).strftime('%Y-%m-%d %H:%M:%S')
+        logger.debug("Job %s ran last on %s"%(section, date_and_time ))
     else:
         logger.debug("No last runtime for %s saved, scheduled for running"%section)
     job = { 'name'     : section, 
