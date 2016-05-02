@@ -157,30 +157,31 @@ else:
     logger.error("No jobs in config file! Exiting.")
     sys.exit(1)
 
-while True:
-    for jobid,job in enumerate(bakjobs):
-        time.sleep(args.sleeptime)
+try:
+    while True:
+        for jobid,job in enumerate(bakjobs):
+            time.sleep(args.sleeptime)
 
-        logger.debug("Checking job %i (%s)"%(jobid, job['name']))
-        if 'last_run_time' in job.keys():
-            next_run_time = job['last_run_time']+job['interval']
-            if time.time()<next_run_time:
-                logger.debug("No work - sleeping for %is"%args.sleeptime)
-                continue
+            logger.debug("Checking job %i (%s)"%(jobid, job['name']))
+            if 'last_run_time' in job.keys():
+                next_run_time = job['last_run_time']+job['interval']
+                if time.time()<next_run_time:
+                    logger.debug("No work - sleeping for %is"%args.sleeptime)
+                    continue
 
-        url = job['urlinfo']
-        if url.scheme == 'file':
-            if check_path_availability(url.path):
-                logger.info("Path %s is available, running job %i (%s)"%(url.path, jobid, job['name']))
-                run_job(job)
+            url = job['urlinfo']
+            if url.scheme == 'file':
+                if check_path_availability(url.path):
+                    logger.info("Path %s is available, running job %i (%s)"%(url.path, jobid, job['name']))
+                    run_job(job)
+                else:
+                    logger.debug("Path %s is not available for job %i (%s), waiting ..."%(url.path, jobid, job['name']))
+
             else:
-                logger.debug("Path %s is not available for job %i (%s), waiting ..."%(url.path, jobid, job['name']))
-
-        else:
-            if check_host_availability(url.hostname, url.port):
-                logger.info("Host %s is available, running job %s: %s"%(url.hostname, jobid, job['name']))
-                run_job(job)
-            else:
-                logger.debug("Host %s is unavailable for job %i (%s), waiting ..."%(url.hostname, jobid, job['name']))
-
-
+                if check_host_availability(url.hostname, url.port):
+                    logger.info("Host %s is available, running job %s: %s"%(url.hostname, jobid, job['name']))
+                    run_job(job)
+                else:
+                    logger.debug("Host %s is unavailable for job %i (%s), waiting ..."%(url.hostname, jobid, job['name']))
+except KeyboardInterrupt:
+    logger.info("Exiting")
