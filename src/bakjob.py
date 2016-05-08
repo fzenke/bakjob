@@ -33,7 +33,7 @@ parser.add_argument('--logfile', type=str, default="bakjob.log", help='Log file'
 parser.add_argument('--statefile', type=str, default="bakjob.dat", help='Save file for last run times')
 parser.add_argument('--quiet', action='store_true', help='Do not log to console')
 parser.add_argument('--verbose', '-v', action='count', help='Verbosity level')
-parser.add_argument('--sleeptime', type=int, default=600, help='Time to sleep in seconds between checks if there is work.')
+parser.add_argument('--sleeptime', '-s', type=int, default=600, help='Time to sleep in seconds between checks if there is work.')
 args = parser.parse_args()
 
 # Set up logging
