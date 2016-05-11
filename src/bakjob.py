@@ -160,7 +160,6 @@ else:
 try:
     while True:
         for jobid,job in enumerate(bakjobs):
-            time.sleep(args.sleeptime)
 
             logger.debug("Checking job %i (%s)"%(jobid, job['name']))
             if 'last_run_time' in job.keys():
@@ -183,5 +182,7 @@ try:
                     run_job(job)
                 else:
                     logger.debug("Host %s is unavailable for job %i (%s), waiting ..."%(url.hostname, jobid, job['name']))
+
+        time.sleep(args.sleeptime)
 except KeyboardInterrupt:
     logger.info("Exiting")
