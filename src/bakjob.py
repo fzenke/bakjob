@@ -119,7 +119,7 @@ def check_host_availability(hostname, port=22):
         return_value = True
     except socket.error as e:
         return_value = False
-        logger.info("Error when tyring to connect to %s: %s" % (hostname, e))
+        logger.debug("Error when tyring to connect to %s: %s" % (hostname, e))
     s.close()
     return return_value
 
