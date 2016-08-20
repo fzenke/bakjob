@@ -32,7 +32,7 @@ parser.add_argument('--configfile', type=str, default="bakjob.conf", help='Confi
 parser.add_argument('--logfile', type=str, default="bakjob.log", help='Log file')
 parser.add_argument('--statefile', type=str, default="bakjob.dat", help='Save file for last run times')
 parser.add_argument('--quiet', action='store_true', help='Do not log to console')
-parser.add_argument('--listlast', action='store_true', help='List last backup times and exit')
+parser.add_argument('--last', action='store_true', help='List last backup times and exit')
 parser.add_argument('--verbose', '-v', action='count', help='Verbosity level')
 parser.add_argument('--sleeptime', '-s', type=int, default=600, help='Time to sleep in seconds between checks if there is work.')
 args = parser.parse_args()
@@ -112,11 +112,12 @@ for section in config.sections():
     bakjobs.append(job)
 
 # List the last runtimes of all jobs
-if args.listlast:
+if args.last:
+    print("Last run jobs")
     for jobid,job in enumerate(bakjobs):
         if 'last_run_time' in job.keys():
             date_and_time_str = datetime.datetime.fromtimestamp(job['last_run_time']).strftime('%Y-%m-%d %H:%M:%S')
-            print("Job %i: \"%s\" last run on %s"%(jobid,job['name'],date_and_time_str))
+            print("Job %i: %s (%s)"%(jobid,date_and_time_str,job['name']))
     sys.exit(0)
 
 def check_host_availability(hostname, port=22):
