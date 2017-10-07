@@ -39,7 +39,6 @@ args = parser.parse_args()
 
 # Set up logging
 logger = logging.getLogger('bakjob')
-logger.setLevel(logging.DEBUG)
 
 # create formatter
 formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
@@ -48,6 +47,10 @@ formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
 loglevel = logging.INFO
 if args.verbose:
     loglevel = logging.DEBUG
+    logger.setLevel(logging.DEBUG)
+else:
+    logger.setLevel(logging.INFO)
+
 
 if not args.quiet:
     # create console handler and set level to debug
