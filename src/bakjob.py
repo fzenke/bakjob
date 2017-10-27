@@ -150,7 +150,7 @@ def save_last_run_times(jobs):
         data[job['md5hash']] = job['last_run_time']
 
     try:
-        pkl_file = open(args.statefile, 'w')
+        pkl_file = open(args.statefile, 'wb')
         pickle.dump(data, pkl_file)
         pkl_file.close()
     except IOError:
