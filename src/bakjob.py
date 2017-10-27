@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 
 # This is a copy of BAKJOB a backup scheduling tool for computers 
 # with sporadic access to certain backup media such as USB devices
@@ -17,14 +17,16 @@ import time
 import datetime
 import logging
 import argparse
-import md5
-import ConfigParser
+import configparser
 import pickle
+import hashlib
 
-from urlparse import urlparse
+from urllib.parse import urlparse
 from subprocess import call
+from tendo import singleton
 
-
+# Only run a single instance of bakjob
+me = singleton.SingleInstance() # will sys.exit(-1) if other instance is running
 
 # Parse command line arguments
 parser = argparse.ArgumentParser(description='Runs jobs regularly when certain cloud services or paths become available.')
@@ -92,10 +94,11 @@ except IOError:
 
 # parse config file
 bakjobs = [ ]
-config = ConfigParser.RawConfigParser()
+config = configparser.RawConfigParser()
 config.read(args.configfile)
 for section in config.sections():
-    m = md5.new(config.get(section,'cmd').__str__())
+    m = hashlib.md5()
+    m.update(config.get(section,'cmd').__str__().encode('utf-8'))
     md5hash = m.digest()
     last_run_time = 0
     if md5hash in rundata.keys():
